@@ -248,6 +248,21 @@ $(call SetupCopyDebuginfo,JDK)
 $(call SetupCopyDebuginfo,JRE)
 
 ################################################################################
+# Copy captstone dll if needed
+
+ifeq ($(BUILD_HSDIS), true)
+  ifeq ($(CAPSTONE_ENABLED), true)
+    $(eval $(call SetupCopyFiles, COPY_CAPSTONE, \
+      SRC := $(CAPSTONE_LIB_DIR), \
+      DEST := $(JDK_IMAGE_DIR)/$(LIBS_TARGET_SUBDIR), \
+      FILES := $(CAPSTONE_LIB_FILE), \
+    ))
+
+    JDK_TARGETS += $(COPY_CAPSTONE)
+  endif
+endif
+
+################################################################################
 
 # Include custom post hook here to make it possible to augment the target lists
 # before actual target prerequisites are declared.

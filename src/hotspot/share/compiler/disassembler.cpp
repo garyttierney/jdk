@@ -568,7 +568,7 @@ address decode_env::handle_event(const char* event, address arg) {
     static char buffer[64] = { 0, };
     // Output suppressed because it messes up disassembly.
     // Only print this when the mach changes.
-    if (false && (strcmp(buffer, (const char*)arg) != 0 ||
+    if ((strcmp(buffer, (const char*)arg) != 0 ||
                   strlen((const char*)arg) > sizeof(buffer) - 1)) {
       // Only print this when the mach changes
       strncpy(buffer, (const char*)arg, sizeof(buffer) - 1);

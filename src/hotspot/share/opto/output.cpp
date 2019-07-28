@@ -1555,7 +1555,7 @@ void Compile::fill_buffer(CodeBuffer* cb, uint* blk_starts) {
   }
 #endif
 
-#if defined(SUPPORT_OPTO_ASSEMBLY)
+#if 0
   // Dump the assembly code, including basic-block numbers
   if (print_assembly()) {
     ttyLocker ttyl;  // keep the following output all in one block

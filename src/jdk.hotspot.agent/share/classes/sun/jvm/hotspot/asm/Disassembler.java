@@ -150,7 +150,7 @@ public class Disassembler {
          }
          return arg;
       } else if (match(event, "mach")) {
-         // output().printf("[Disassembling for mach='%s']\n", arg);
+         visitor.print(String.format("[Disassembling for mach='%s']\n", arg));
       } else {
          // ignore unrecognized markup
       }

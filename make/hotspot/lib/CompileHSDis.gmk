@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -23,27 +23,32 @@
 # questions.
 #
 
-default: all
+$(eval $(call IncludeCustomExtension, hotspot/lib/CompileHSDis.gmk))
 
-include $(SPEC)
-include MakeBase.gmk
-include NativeCompilation.gmk
+HSDIS_NAME := hsdis-$(OPENJDK_TARGET_CPU_LEGACY_LIB)
+HSDIS_OUTPUT_DIR := $(JVM_LIB_OUTPUTDIR)
+HSDIS_OBJ_DIR := $(JVM_OUTPUTDIR)/hsdis/objs
 
-include HotspotCommon.gmk
+HSDIS_LD_FLAGS := -fPIC $(SHARED_LIBRARY_FLAGS)
 
-include lib/CompileJvm.gmk
-include lib/CompileDtraceLibraries.gmk
 
-ifeq ($(BUILD_GTEST), true)
-  include lib/CompileGtest.gmk
+ifeq ($(CAPSTONE_ENABLED), true)
+  HSDIS_SRC := $(TOPDIR)/src/utils/capstonedis
+
+  $(warning $(HSDIS_LD_FLAGS))
+
+  $(eval $(call SetupNativeCompilation, BUILD_HSDIS, \
+    NAME := $(HSDIS_NAME), \
+    TOOLCHAIN := TOOLCHAIN_LINK_CXX, \
+    OUTPUT_DIR := $(HSDIS_OUTPUT_DIR), \
+    OBJECT_DIR := $(HSDIS_OBJ_DIR), \
+    SRC := $(HSDIS_SRC), \
+    CXXFLAGS := $(CAPSTONE_CXXFLAGS) -fPIC, \
+    LDFLAGS := $(HSDIS_LD_FLAGS) $(CAPSTONE_LD_FLAGS), \
+    LIBS := $(CAPSTONE_LIBS), \
+  ))
+
+  TARGETS += $(BUILD_HSDIS)
+else
+  # legacy hsdis using binutils: nyi
 endif
-
-ifeq ($(BUILD_HSDIS), true)
-  include lib/CompileHSDis.gmk
-endif
-
-include CopyToExplodedJdk.gmk
-
-all: $(TARGETS)
-
-.PHONY: all

@@ -630,3 +630,25 @@ AC_DEFUN_ONCE([HOTSPOT_ENABLE_DISABLE_GTEST],
 
   AC_SUBST(BUILD_GTEST)
 ])
+
+AC_DEFUN_ONCE([HOTSPOT_ENABLE_DISABLE_HSDIS],
+[
+  AC_ARG_ENABLE([hotspot-hsdis], [AS_HELP_STRING([--disable-hotspot-hsdis],
+      [Disables building of the Hotspot disassembler plugin hsdis @<:@enabled@:>@])])
+
+  AC_MSG_CHECKING([if Hotspot gtest unit tests should be built])
+  if test "x$enable_hotspot_hsdis" = "xyes"; then
+    AC_MSG_RESULT([yes, forced])
+    BUILD_HSDIS="true"
+  elif test "x$enable_hotspot_hsdis" = "xno"; then
+    AC_MSG_RESULT([no, forced])
+    BUILD_HSDIS="false"
+  elif test "x$enable_hotspot_hsdis" = "x"; then
+    AC_MSG_RESULT([yes])
+    BUILD_HSDIS="true"
+  else
+    AC_MSG_ERROR([--enable-gtest must be either yes or no])
+  fi
+
+  AC_SUBST(BUILD_HSDIS)
+])

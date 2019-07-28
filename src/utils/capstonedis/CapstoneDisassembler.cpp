@@ -1,20 +1,10 @@
 #include "CapstoneDisassembler.h"
 #include <capstone.h>
 
-void CapstoneDisassemblerOptions::parse(std::string options)
+void CapstoneDisassemblerOptions::parse(const std::string& options)
 {
-    std::size_t prev = 0;
-    std::size_t curr = options.find(',');
-
-    while (curr != std::string::npos) {
-        std::string opt = options.substr(prev, curr - prev);
-
-        if (opt.find("att-syntax") == 0) {
-            att_syntax = true;
-        }
-
-        prev = curr + 1;
-        curr = options.find(',', prev);
+    if (options.find("att") != std::string::npos) {
+        att_syntax = true;
     }
 }
 

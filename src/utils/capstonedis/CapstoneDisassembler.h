@@ -11,7 +11,7 @@ struct CapstoneDisassemblerOptions {
 public:
     bool att_syntax = false;
 
-    void parse(std::string options);
+    void parse(const std::string& options);
 };
 
 class CapstoneDisassembler {

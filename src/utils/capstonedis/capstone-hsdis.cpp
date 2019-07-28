@@ -22,7 +22,8 @@ EXPORT void* decode_instructions_virtual(uintptr_t start_va,
         CapstoneDisassemblerOptions disassembler_opts;
 
         if (options_ptr != nullptr) {
-            disassembler_opts.parse(std::string(options_ptr));
+            std::string options(options_ptr);
+            disassembler_opts.parse(options);
         }
 
         CapstoneDisassembler disassembler { disassembler_opts, start_va, end_va, buffer, length };

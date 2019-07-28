@@ -5,122 +5,44 @@
 #include <string>
 #include <utility>
 
-class Event {
+class EventType {
 public:
-    virtual const char* name() = 0;
 
-    virtual void* arg() = 0;
-};
+    explicit EventType(std::string name) : _name(std::move(name)) {}
 
-class AddrEvent : public Event {
-    void* arg() override { return reinterpret_cast<void*>(addr); }
-
-protected:
-    explicit AddrEvent(uintptr_t _addr)
-        : addr(_addr)
-    {
+    const std::string & name() const {
+        return _name;
     }
-
-private:
-    uintptr_t addr;
-};
-
-class MemoryAddressEvent : public AddrEvent {
-public:
-    explicit MemoryAddressEvent(uintptr_t addr)
-        : AddrEvent(addr)
-    {
-    }
-
-    const char* name() override
-    {
-        return "addr/";
-    }
-};
-
-class CStringEvent : public Event {
-public:
-    void* arg() override { return (void*)value.c_str(); }
-
-protected:
-    explicit CStringEvent(std::string _value)
-        : value(std::move(_value))
-    {
-    }
-
-private:
-    std::string value;
-};
-
-class MachineInfo : public CStringEvent {
-public:
-    explicit MachineInfo(std::string ident)
-        : CStringEvent(std::move(ident))
-    {
-    }
-
-    const char* name() override { return "mach/"; }
-};
-
-class InstructionsStarted : public AddrEvent {
-public:
-    explicit InstructionsStarted(uintptr_t start)
-        : AddrEvent(start)
-    {
-    }
-
-    const char* name() override { return "insns"; }
-};
-
-class InstructionsCompleted : public AddrEvent {
-public:
-    explicit InstructionsCompleted(uintptr_t end)
-        : AddrEvent(end)
-    {
-    }
-
-    const char* name() override { return "/insns"; }
-
-    void* arg() override { return nullptr; }
-};
-
-class Instruction : public AddrEvent {
-public:
-    explicit Instruction(uintptr_t addr)
-        : AddrEvent(addr)
-    {
-    }
-
-    const char* name() override { return "insn"; }
-};
-
-class InstructionDecoded : public AddrEvent {
-public:
-    explicit InstructionDecoded(uintptr_t start, const std::string& type)
-        : AddrEvent(start)
-        , _name("/insn type='" + type + "'")
-    {
-    }
-
-    const char* name() override { return _name.c_str(); }
 
 private:
     std::string _name;
 };
 
+static EventType EVENT_INSNS("insns");
+static EventType EVENT_MACHINE("mach");
+static EventType EVENT_INSN = EventType("insn");
+static EventType EVENT_ADDR("addr");
+
 class EventStream {
 public:
-    EventStream(event_callback_t _event_callback, void* _event_stream)
-        : event_callback(_event_callback)
-        , event_stream(_event_stream)
-    {
+    EventStream(event_callback_t _event_callback, void *_event_stream)
+	: event_callback(_event_callback), event_stream(_event_stream) {
     }
 
-    void* emit(Event& event);
+    void begin(const EventType &type, intptr_t address);
 
+    void end(const EventType &type, intptr_t address);
+
+    void *emit(const EventType &type, intptr_t address);
+
+    void *emit(const EventType &type, const std::string &value);
 private:
+    void *emit(const std::string &name, void *ptr) {
+	return event_callback(event_stream, name.c_str(), ptr);
+    }
+
     event_callback_t event_callback;
-    void* event_stream;
+    void *event_stream;
 };
 
 #endif // CAPSTONE_HSDIS_EVENTSTREAM_H

@@ -1,13 +1,20 @@
-//
-// Created by gtierney on 26/07/2019.
-//
-
 #include "EventStream.h"
 
-void* EventStream::emit(Event& event)
-{
-    const char* name = event.name();
-    void* arg = event.arg();
+void EventStream::begin(const EventType &type, intptr_t address) {
+    emit(type.name(), (void*)address);
+}
 
-    return event_callback(event_stream, name, arg);
+void EventStream::end(const EventType &type, intptr_t address) {
+    std::string tag = "/" + type.name();
+    emit(tag, (void*)address);
+}
+
+void *EventStream::emit(const EventType &type, intptr_t address) {
+    std::string name = type.name() + "/";
+    return emit(name, (void*) address);
+}
+
+void *EventStream::emit(const EventType &type, const std::string& value) {
+    std::string name = type.name() + "/";
+    return emit(name, (void*) value.c_str());
 }

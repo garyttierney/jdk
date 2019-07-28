@@ -8,17 +8,6 @@ void CapstoneDisassemblerOptions::parse(const std::string& options)
     }
 }
 
-std::string CapstoneDisassembler::get_instruction_type(const cs_insn* insn)
-{
-    if (cs_insn_group(capstone, insn, CS_GRP_CALL)) {
-        return "branch";
-    } else if (cs_insn_group(capstone, insn, CS_GRP_JUMP)) {
-        return "condbranch";
-    }
-
-    return "unknown";
-}
-
 void CapstoneDisassembler::disassemble(EventStream& events,
     PrintStream& output)
 {
@@ -30,39 +19,30 @@ void CapstoneDisassembler::disassemble(EventStream& events,
         return;
     }
 
-    InstructionsStarted started { start_va };
-    events.emit(started);
-
-    MachineInfo machine_info { "amd64" };
-    events.emit(machine_info);
+    events.begin(EVENT_INSNS, start_va);
+    events.emit(EVENT_MACHINE, "amd64");
 
     for (size_t index = 0; index < size; index++) {
         cs_insn insn = instructions[index];
-        Instruction event { insn.address };
 
-        events.emit(event);
+        events.begin(EVENT_INSN, insn.address);
         output.print("%s ", insn.mnemonic);
 
         if (cs_insn_group(capstone, &insn, CS_GRP_JUMP) || cs_insn_group(capstone, &insn, CS_GRP_CALL)) {
             uintptr_t jump_addr = get_instruction_branch_target(&insn);
-            MemoryAddressEvent jump_addr_event { jump_addr };
 
-            if (events.emit(jump_addr_event) == nullptr) {
+            if (events.emit(EVENT_ADDR, jump_addr) == nullptr) {
                 output.print("0x%016" PRIxPTR, jump_addr);
             }
         } else {
             output.print("%s", insn.op_str);
         }
 
-        std::string type = get_instruction_type(&insn);
-        InstructionDecoded decoded_event { insn.address + insn.size, type };
-        events.emit(decoded_event);
+        events.end(EVENT_INSN, insn.address + insn.size);
     }
 
     cs_free(instructions, size);
-
-    InstructionsCompleted completed { end_va };
-    events.emit(completed);
+    events.end(EVENT_INSNS, end_va);
 }
 
 intptr_t CapstoneDisassembler::get_instruction_branch_target(const cs_insn* insn)

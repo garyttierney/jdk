@@ -27,7 +27,10 @@ private:
 
 class MemoryAddressEvent : public AddrEvent {
 public:
-    explicit MemoryAddressEvent(uintptr_t addr) : AddrEvent(addr) {}
+    explicit MemoryAddressEvent(uintptr_t addr)
+        : AddrEvent(addr)
+    {
+    }
 
     const char* name() override
     {

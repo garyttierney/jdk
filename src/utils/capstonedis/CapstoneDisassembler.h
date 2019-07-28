@@ -27,7 +27,7 @@ public:
         , length(length)
         , capstone()
     {
-        cs_err err = cs_open(CS_ARCH_X86, CS_MODE_64, &capstone);
+        cs_err err = cs_open(ARCH, MODE, &capstone);
         if (err != CS_ERR_OK) {
             throw std::runtime_error(std::string("Failed to open Capstone handle: ") + cs_strerror(err));
         }
@@ -42,6 +42,8 @@ public:
 
 private:
     std::string get_instruction_type(const cs_insn* insn);
+
+    static intptr_t get_instruction_branch_target(const cs_insn* insn);
 
     csh capstone;
     uintptr_t start_va, end_va;

@@ -41,17 +41,15 @@ void CapstoneDisassembler::disassemble(EventStream& events,
         Instruction event { insn.address };
 
         events.emit(event);
-
-	output.print("%s ", insn.mnemonic);
+        output.print("%s ", insn.mnemonic);
 
         if (cs_insn_group(capstone, &insn, CS_GRP_JUMP) || cs_insn_group(capstone, &insn, CS_GRP_CALL)) {
-            uintptr_t jump_addr = insn.detail->x86.operands[0].imm;
-            MemoryAddressEvent jump_addr_event{jump_addr};
+            uintptr_t jump_addr = get_instruction_branch_target(&insn);
+            MemoryAddressEvent jump_addr_event { jump_addr };
 
             if (events.emit(jump_addr_event) == nullptr) {
-		output.print("0x%016" PRIxPTR, jump_addr);
+                output.print("0x%016" PRIxPTR, jump_addr);
             }
-
         } else {
             output.print("%s", insn.op_str);
         }
@@ -65,4 +63,27 @@ void CapstoneDisassembler::disassemble(EventStream& events,
 
     InstructionsCompleted completed { end_va };
     events.emit(completed);
+}
+
+intptr_t CapstoneDisassembler::get_instruction_branch_target(const cs_insn* insn)
+{
+    cs_detail* detail = insn->detail;
+
+    switch (ARCH) {
+#define CS_ARCH_CASE(arch, ident) \
+    case arch:                    \
+        return detail->ident.operands[0].imm;
+
+        CS_ARCH_CASE(CS_ARCH_X86, x86)
+        CS_ARCH_CASE(CS_ARCH_ARM, arm)
+        CS_ARCH_CASE(CS_ARCH_ARM64, arm64)
+        CS_ARCH_CASE(CS_ARCH_MIPS, mips)
+        CS_ARCH_CASE(CS_ARCH_PPC, ppc)
+        CS_ARCH_CASE(CS_ARCH_SPARC, sparc)
+        CS_ARCH_CASE(CS_ARCH_SYSZ, sysz)
+        CS_ARCH_CASE(CS_ARCH_XCORE, xcore)
+#undef CS_ARCH_CASE
+    }
+
+    return 0;
 }
